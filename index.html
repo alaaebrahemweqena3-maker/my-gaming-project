@@ -1,0 +1,120 @@
+<!doctype html>
+
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لعبة: جاوبي بسرعة أو عقاب</title>
+  <style>
+    :root{font-family: Tahoma, system-ui, sans-serif}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:linear-gradient(135deg,#fff8f0,#ffeef8)}
+    .card{width:95%;max-width:600px;background:white;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,0.08);padding:22px;text-align:center}
+    h1{margin:0 0 6px;font-size:20px}
+    p.lead{margin:0 0 16px;color:#666}
+    #question{font-size:18px;padding:14px;border-radius:12px;background:#f8f8ff;margin-bottom:12px;min-height:64px;display:flex;align-items:center;justify-content:center;text-align:center}
+    .controls{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;justify-content:center}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    button#start{background:#ff7ab6;color:white}
+    button#skip{background:#ffd6e6}
+    .timer{font-size:26px;margin-bottom:10px}
+    input.answer-input{width:90%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-bottom:12px;text-align:center}
+    .penalty-area{background:#fff4f8;padding:10px;border-radius:10px;color:#b30059;display:none;margin-bottom:12px}
+    input.player-name{width:120px;padding:6px;border:1px solid #ccc;border-radius:6px;margin-top:4px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>لعبة: جاوبي بسرعة أو عقاب</h1>
+    <p class="lead" id="welcome-text">جاهز للعب؟</p>
+    <button id="ready-btn" style="background:#7be4b8">ايوه</button><div id="player-input-area" style="display:none; margin-top:12px">
+  <label>اكتب اسمك:</label>
+  <input id="player-name" class="player-name" placeholder="اسمك هنا">
+  <button id="start-btn" style="background:#ff7ab6;color:white;margin-top:8px">ابدأ اللعبة</button>
+</div>
+
+<div id="game-area" style="display:none">
+  <div id="question">هنا هيظهر السؤال</div>
+  <input id="answer" class="answer-input" placeholder="اكتبي إجابتك هنا">
+  <div class="timer" aria-live="polite"><span id="countdown">--</span> ثواني</div>
+  <div class="penalty-area" id="penalty-area"></div>
+  <button id="next-question" style="background:#7be4b8;padding:8px;border:none;border-radius:8px;cursor:pointer;display:none">التالي</button>
+</div>
+
+  </div>  <script>
+    const questions = [
+      {q:'ما هي عاصمة مصر؟', a:'القاهرة'},
+      {q:'كم عدد أيام الأسبوع؟', a:'7'},
+      {q:'ما هو أكبر كوكب في المجموعة الشمسية؟', a:'المشتري'},
+      {q:'ما هو لون السماء في النهار؟', a:'أزرق'},
+      {q:'كم عدد أصابع اليد الواحدة؟', a:'5'},
+      {q:'ما هو الحيوان الذي يسمى ملك الغابة؟', a:'الأسد'},
+      {q:'ما هو اسم الكوكب الذي نعيش عليه؟', a:'الأرض'},
+      {q:'ما هو العدد الذي يلي 9؟', a:'10'}
+    ];
+
+    let currentQIndex = 0;
+    let timer = null;
+    let timeLeft = 0;
+
+    const readyBtn = document.getElementById('ready-btn');
+    const welcomeText = document.getElementById('welcome-text');
+    const playerInputArea = document.getElementById('player-input-area');
+    const startBtn = document.getElementById('start-btn');
+    const playerNameInput = document.getElementById('player-name');
+    const gameArea = document.getElementById('game-area');
+    const questionEl = document.getElementById('question');
+    const answerInput = document.getElementById('answer');
+    const countdown = document.getElementById('countdown');
+    const penaltyArea = document.getElementById('penalty-area');
+    const nextBtn = document.getElementById('next-question');
+
+    readyBtn.addEventListener('click', ()=>{
+      welcomeText.textContent = 'اكتب اسمك وابدأ اللعبة';
+      readyBtn.style.display = 'none';
+      playerInputArea.style.display = 'block';
+    });
+
+    startBtn.addEventListener('click', ()=>{
+      if(!playerNameInput.value.trim()) return alert('اكتب اسمك أولاً 😄');
+      playerInputArea.style.display = 'none';
+      gameArea.style.display = 'block';
+      startQuestion();
+    });
+
+    function startQuestion(){
+      if(currentQIndex >= questions.length) currentQIndex = 0;
+      const currentQ = questions[currentQIndex].q;
+      questionEl.textContent = currentQ;
+      answerInput.value = '';
+      nextBtn.style.display = 'none';
+      penaltyArea.style.display = 'none';
+      timeLeft = 15;
+      countdown.textContent = timeLeft;
+      timer = setInterval(()=>{
+        timeLeft--;
+        countdown.textContent = timeLeft >= 0 ? timeLeft : 0;
+        if(timeLeft < 0){
+          clearInterval(timer);
+          checkAnswer();
+        }
+      },1000);
+    }
+
+    function checkAnswer(){
+      const ans = answerInput.value.trim();
+      const correctAns = questions[currentQIndex].a;
+      if(ans.toLowerCase() !== correctAns.toLowerCase()){ // لو غلط
+        penaltyArea.textContent = ' يسطا انت حمار صح ما تركز ياغبي';
+        penaltyArea.style.display = 'block';
+      } else {
+        questionEl.textContent = `ياااااااه ده انت جاوبت صح ${ans} ✅`; 
+      }
+      nextBtn.style.display = 'block';
+    }
+
+    nextBtn.addEventListener('click', ()=>{
+      currentQIndex++;
+      startQuestion();
+    });
+  </script></body>
+</html>
